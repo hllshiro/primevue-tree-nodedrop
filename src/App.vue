@@ -1,154 +1,78 @@
 <template>
-    <ThemeSwitcher />
-    <div class="card flex flex-col md:flex-row gap-4">
-        <Tree v-model:value="value1" class="flex-1 border border-surface rounded-lg" draggableNodes droppableNodes draggableScope="first" droppableScope="none" validate-drop>
-            <template #empty> No Items Left </template>
-        </Tree>
-        <Tree v-model:value="value2" class="flex-1 border border-surface rounded-lg" draggableNodes droppableNodes draggableScope="second" droppableScope="first" validate-drop>
-            <template #empty> Drag Nodes Here </template>
-        </Tree>
-        <Tree v-model:value="value3" class="flex-1 border border-surface rounded-lg" draggableNodes droppableNodes :droppableScope="['first', 'second']" validate-drop>
-            <template #empty> Drag Nodes Here </template>
-        </Tree>
+  <div class="card flex flex-col gap-4">
+    <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded text-sm">
+      <strong>Goal:</strong> Prevent dropping nodes <u>INSIDE</u> a file (icon:
+      pi-file), but allow dropping <u>ABOVE</u> or <u>BELOW</u> it as a sibling.
+      <br />
+      <strong>Current Issue:</strong> The <code>onNodeDrop</code> event doesn't
+      tell us the drop position, making it impossible to tell the difference.
     </div>
+
+    <Tree
+      v-model:value="nodes"
+      class="flex-1 border border-surface rounded-lg"
+      draggableNodes
+      droppableNodes
+      valitdate-drop
+      @node-drop="onNodeDrop"
+    >
+      <template #default="slotProps">
+        <span>{{ slotProps.node.label }}</span>
+      </template>
+    </Tree>
+
+    <div
+      v-if="lastAction"
+      class="p-2 border rounded bg-surface-100 text-xs font-mono"
+    >
+      Last Action Log: {{ lastAction }}
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from "vue";
 
-const value1 = ref([
-    {
-        key: '0-0',
-        label: '.github',
-        data: '.github folder',
-        icon: 'pi pi-fw pi-folder',
-        children: [
-            {
-                key: '0-0-0',
-                label: 'workflows',
-                data: 'workflows folder',
-                icon: 'pi pi-fw pi-folder',
-                children: [
-                    {
-                        key: '0-0-0-0',
-                        label: 'node.js.yml',
-                        data: 'node.js.yml file',
-                        icon: 'pi pi-fw pi-file'
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        key: '0-1',
-        label: '.vscode',
-        data: '.vscode folder',
-        icon: 'pi pi-fw pi-folder',
-        children: [
-            {
-                key: '0-1-0',
-                label: 'extensions.json',
-                data: 'extensions.json file',
-                icon: 'pi pi-fw pi-file'
-            }
-        ]
-    },
-    {
-        key: '0-2',
-        label: 'public',
-        data: 'public folder',
-        icon: 'pi pi-fw pi-folder',
-        children: [
-            {
-                key: '0-2-0',
-                label: 'vite.svg',
-                data: 'vite.svg file',
-                icon: 'pi pi-fw pi-file'
-            }
-        ]
-    },
-    {
-        key: '0-3',
-        label: 'src',
-        data: 'src folder',
-        icon: 'pi pi-fw pi-folder',
-        children: [
-            {
-                key: '0-3-0',
-                label: 'assets',
-                data: 'assets folder',
-                icon: 'pi pi-fw pi-folder',
-                children: [
-                    {
-                        key: '0-3-0-0',
-                        label: 'vue.svg',
-                        data: 'vue.svg file',
-                        icon: 'pi pi-fw pi-file'
-                    }
-                ]
-            },
-            {
-                key: '0-3-1',
-                label: 'components',
-                data: 'components folder',
-                icon: 'pi pi-fw pi-folder',
-                children: [
-                    {
-                        key: '0-3-1-0',
-                        label: 'HelloWorld.vue',
-                        data: 'HelloWorld.vue file',
-                        icon: 'pi pi-fw pi-file'
-                    }
-                ]
-            },
-            {
-                key: '0-3-2',
-                label: 'App.vue',
-                data: 'App.vue file',
-                icon: 'pi pi-fw pi-file'
-            },
-            {
-                key: '0-3-3',
-                label: 'main.js',
-                data: 'main.js file',
-                icon: 'pi pi-fw pi-file'
-            },
-            {
-                key: '0-3-4',
-                label: 'style.css',
-                data: 'style.css file',
-                icon: 'pi pi-fw pi-file'
-            }
-        ]
-    },
-    {
-        key: '0-4',
-        label: 'index.html',
-        data: 'index.html file',
-        icon: 'pi pi-fw pi-file'
-    },
-    {
-        key: '0-5',
-        label: 'package.json',
-        data: 'package.json file',
-        icon: 'pi pi-fw pi-file'
-    },
-    {
-        key: '0-6',
-        label: 'vite.config.js',
-        data: 'vite.config.js file',
-        icon: 'pi pi-fw pi-file'
-    }
+const lastAction = ref("");
+const nodes = ref([
+  {
+    key: "0-0",
+    label: "src (Folder)",
+    icon: "pi pi-fw pi-folder",
+    children: [
+      { key: "0-0-0", label: "App.vue (File)", icon: "pi pi-fw pi-file" },
+      { key: "0-0-1", label: "main.js (File)", icon: "pi pi-fw pi-file" },
+    ],
+  },
+  {
+    key: "0-1",
+    label: "package.json (File)",
+    icon: "pi pi-fw pi-file",
+  },
 ]);
 
-const value2 = ref([
-    {
-        key: '1-0',
-        label: '/etc',
-        icon: 'pi pi-fw pi-folder'
-    }
-]);
+const onNodeDrop = (event) => {
+  const { dragNode, dropNode, index } = event;
 
-const value3 = ref([]);
+  // PROBLEM: We want to intercept here.
+  // If user tries to drop "src" INTO "package.json", it should be blocked.
+  // If user tries to drop "src" ABOVE "package.json", it should be allowed.
 
+  // CURRENT LIMITATION:
+  // We only know 'dropNode' is 'package.json'.
+  // We DON'T know if the drop indicator was a line (sibling) or a box (into).
+
+  const isFile = dropNode.icon === "pi pi-fw pi-file";
+
+  if (isFile) {
+    // If we block here, we also accidentally block moving nodes to be
+    // siblings of this file, which is bad UX.
+    lastAction.value = `Dropped ${dragNode.label} on ${dropNode.label}. But is it INTO or BESIDE? We don't know.`;
+
+    // How to implement: if (dropPosition === 0) { event.reject(); } ?
+  }
+
+  // PrimeVue default logic
+  if (event.accept) event.accept();
+};
 </script>
